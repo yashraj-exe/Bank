@@ -11,6 +11,6 @@ connectDB();
 app.use('/client',require('./routes/clientRoutes'))
 app.use('/admin',require('./routes/adminRoutes'))
 
-app.listen(3000,'localhost',()=>{
+app.listen(3000,"0.0.0.0",()=>{
     console.log('app is listing on http://localhost:3000')
 });

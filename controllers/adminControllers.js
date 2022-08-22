@@ -15,8 +15,8 @@ class adminControllers{
             res.send({ status: "Failed", message: "Email already Registered" })
         } else {
             if (user && email && phone && address) {
-                let phoneData = await userModel.findOne({phone : phone});
-                if (!phoneData) {
+                let email = await userModel.findOne({email : email});
+                if (!email) {
                     try {
                         let password = randomize('0A',5);
                         
