@@ -10,7 +10,9 @@ const userSchema = mongoose.Schema({
     isFreez : {type:Boolean,default : false,required : false},
     join:{type:Date,default:new Date()},
     accountNumber : {type : Number,required : false},
-    address : {type : String,required : false}
+    address : {type : String,required : false},
+    isCheckBookApply : {type : Boolean ,default : false},
+    checkBookDetails : {type : Object}
 })
 
 const userModel = mongoose.model('client',userSchema)

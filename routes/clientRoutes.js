@@ -11,6 +11,7 @@ router.use('/transfer',verifyUserToken)
 router.use('/getAccountNumber',verifyUserToken)
 router.use('/getExcel',verifyUserToken)
 router.use('/getTransaction',verifyUserToken)
+router.use('/applyCheckBook',verifyUserToken)
 
 
 // Public route
@@ -26,6 +27,6 @@ router.post('/transfer',clientControllers.transferAmount);
 router.get('/getAccountNumber',clientControllers.accountNumber);
 router.get('/getExcel',clientControllers.getExcel);
 router.get('/getTransaction',clientControllers.getTransaction);
-
+router.post("/applyCheckBook",clientControllers.applyCheckBook)
 
 module.exports = router;

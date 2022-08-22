@@ -288,9 +288,29 @@ class clientControllers {
     }
 
     static applyCheckBook = async (req,res)=>{
-        let {accountNumber} = req.body;
+        let {name, address,password} = req.body;
         try {
-            
+            let user = await userModel.findOne({'_id' : req.id});
+            if(name && address && password){
+                if(user){
+                    let isMatch = await bcrypt.compare(password,user.password);
+                    if(isMatch){
+                        let details = {
+                            name,
+                            address,
+                            dateOfApply : new Date()
+                        }
+                        let resp = await userModel.updateOne({_id:req.id},{$set : {isCheckBookApply: true,checkBookDetails : details}})
+                        res.status(200).send("Successfully apply for CheckBook")
+                    }else{
+                        res.status(422).send("Password is Incorrect")
+                    }
+                }else{
+                    res.status(500).send("User Not found")
+                }
+            }else{
+                res.status(422).send("All fields are required");
+            }
         } catch (error) {
             res.status(500).send("Initial server error");
         }
