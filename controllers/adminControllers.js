@@ -15,8 +15,8 @@ class adminControllers{
         let {email,password} = req.body;
         let user = await adminModel.findOne({email});
         console.log(user)
-        if(user){
-            if(email && password){
+        if(email && password){
+            if(user){
                 if(email === user.email && password === user.password){
                     let salt = await bcrypt.genSalt(10);
                     let encryptString = await bcrypt.hash(`${moment(new Date()).format("DD-MM-YYYY").toString()}`,salt);
@@ -30,14 +30,14 @@ class adminControllers{
                     res.send({message:"Invalid Credentials",status:"FAILED"})
                 }
             }else{
-                res.send({message:"All fields are Required",status:"FAILED"})
+                res.send({message:"Unable you find Admin"})
             }
         }else{
-            res.send({message:"Unable you find Admin"})
+            res.send({message:"All fields are Required",status:"FAILED"})
         }
         
+        
     } 
-
     static registerClient = async (req, res) => {
         const { user, email, phone, address} = req.body;
         const userData = await userModel.findOne({ email : email  });
