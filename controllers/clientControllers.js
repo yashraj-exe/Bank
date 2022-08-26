@@ -7,19 +7,26 @@ const moment = require('moment')
 const Excel = require('exceljs')
 const path = require('path')
 let date = new Date();
+const verify = require('../middlewares/auth-middleware')
 
 class clientControllers {
     static login = async (req, res) => {
         const { email, password } = req.body;
+        console.log(req.body)
         if(email && password){
             try {
                 const data = await userModel.findOne({ email: email });
                 if (data != null) {
                     const isMatch = await bcrypt.compare(password, data.password);
+                    console.log(isMatch)
                     if ((email === data.email) && isMatch) {
                         //JWT/
                         const token = jwt.sign({ userID: data._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1d' })
-                        res.send({ status: "Success", message: "Login Success", "Token": token })
+                        let dataa = {
+                            data  : {"token": token },
+                            status: "Success", message: "Login Success"
+                        }
+                        res.send(dataa)
                     } else {
                         res.send({ status: "Failed", message: "email and password are invalid" })
                     }
@@ -27,7 +34,7 @@ class clientControllers {
                     res.send('not a register user')
                 }
             } catch (error) {
-    
+                console.log(error)
                 res.send({ status: "Failed", message: "unable to login user", err: error.message })
             }
         }else{
@@ -37,7 +44,7 @@ class clientControllers {
     }
     static changePassword = async (req, res) => {
         const { current_password, confirm_password, new_password} = req.body;
-        if (current_password && confirm_password) {
+        if (current_password && confirm_password && new_password) {
             if (current_password !== confirm_password) {
                 res.send({ status: "Failed", message: "password dosen't Match" })
             } else {
@@ -49,7 +56,7 @@ class clientControllers {
                 if (isMatch) {
                     let response = await userModel.findByIdAndUpdate(req.id,{$set:{password:newHashPassword}});
                     console.log(response)
-                    res.send({ status: "Success", message: "Successfully change password",newPassword : new_password})
+                    res.send({ status: "SUCCESS", message: "Successfully change password",newPassword : new_password})
                 } else {
                     res.send({ status: "Failed", message: "password password is incorrect" })
                 }
@@ -61,7 +68,7 @@ class clientControllers {
     static checkBalance = async (req,res)=>{
         try {
             let user = await userModel.findOne({'_id':req.id},{balance : 1,_id : 0});
-            res.send({status : "Success",code : 200, balance : user.balance.toFixed(2)});
+            res.send({status : "SUCCESS",code : 200, balance : `Rs. ${user.balance.toFixed(2)}/-`});
         } catch (error) {
             res.send("Errror cannot check balance something went wrong");
         }
@@ -69,6 +76,7 @@ class clientControllers {
     static depositAmount = async (req,res)=>{
         
         let {depositeAmount,password} = req.body;
+        console.log(depositeAmount)
         try {
             let user = await userModel.findOne({'_id':req.id});
             if(user){
@@ -89,24 +97,25 @@ class clientControllers {
                             }
                             tempArray.unshift(tranObj);
                             await userModel.updateOne({'_id':req.id},{$set:{lastTransaction : tempArray }})
-                            res.send("Balance Deposite Successfully");
+                            res.send({message:`Rs. ${depositeAmount}/- Deposite Successfully`,status:"SUCCESS"})
                         }else{
-                            res.send("Incorrect Password")
+                            res.send({message:"Incorrect Password",status:"FAILED"})
                         }
                     }else{
-                        res.send("Error enter valid Amount")
+                        res.send({message:"Error enter valid Amount",status:"FAILED"})
                     }
                 }else{
-                    res.send("Error Sorry your account is Freez kindly contact Admin")
+                    res.send({message:"Error Sorry your account is Freez kindly contact Admin",status:"FAILED"})
                 }
                 
-            }else res.send("Error Something went wrong")
+            }else res.send({message:"Error Something went wrong",status:"FAILED"})
         } catch (error) {
             
         }
     }
     static withdrawAmount = async (req,res)=>{
         let {withdrawAmount,password} = req.body;
+        console.log(req.body)
         try {
             let user = await userModel.findOne({'_id':req.id});
             if(user){
@@ -129,16 +138,16 @@ class clientControllers {
                                 }
                                 tempArray.unshift(tranObj);
                                 await userModel.updateOne({'_id':req.id},{$set:{lastTransaction : tempArray }})
-                                res.send("Amount withdraw successfully");
+                                res.send({message:`Rs. ${withdrawAmount}/- amount withdraw successfully`,status:"SUCCESS"});
                             }else{
-                                res.send("Enter valid ammount");
+                                res.send({message:"Enter valid ammount",status:"FAILED"});
                             }
                         }else{
-                            res.send("Insufficient funds")
+                            res.send({message:"Insufficient funds",status:"FAILED"})
                         }
-                    }else res.send("Password is Incorrect")
+                    }else res.send({message:"Password is Incorrect",status:"FAILED"})
                 }else{
-                    res.send("Error Sorry your account is Freez kindly contact Admin")
+                    res.send({message:"Error Sorry your account is Freez kindly contact Admin",status:"FAILED"})
                 }
             }else{
                 res.send("Error Something went wrong")
@@ -149,51 +158,58 @@ class clientControllers {
         }
     }
     static transferAmount = async (req,res)=>{
-        let {amount,account} = req.body;
+        let {amount,account,password} = req.body;
+        console.log(req.body)
         try {
             let currentUser = await userModel.findOne({'_id':req.id});
             let receiverUser = await userModel.findOne({'accountNumber':account});
             if(currentUser){
-                if(currentUser.isFreez != true){
-                    if(currentUser.balance >= amount){
-                    	if(receiverUser){
-                            let finalAmount = receiverUser.balance + amount;
-                            await userModel.updateOne({'accountNumber':account},{$set:{balance : finalAmount}});
-                            await userModel.updateOne({'_id':req.id},{$set:{balance : currentUser.balance - amount}})
-                            let tempArray = currentUser.lastTransaction;
-                                let tranObj = {
-                                    type : "TRANSFER",
-                                    date : moment(new Date()).format("MMMM Do YYYY, h:mm:ss a"),
-                                    debit : amount,
-                                    credit : 0,
-                                    balance : currentUser.balance - amount,
-                                    to : account
-                                }
-                                tempArray.unshift(tranObj);
-                                await userModel.updateOne({'_id':req.id},{$set:{lastTransaction : tempArray }})
-                                let tempArray2 = receiverUser.lastTransaction;
-                                let tranObj2 = {
-                                    type : "WITHDRAW",
-                                    date : moment(new Date()).format("MMMM Do YYYY, h:mm:ss a"),
-                                    debit : 0,
-                                    credit : amount,
-                                    balance : receiverUser.balance + amount,
-                                    to : account
-                                }
-                                tempArray2.unshift(tranObj2);
-                                await userModel.updateOne({accountNumber : account},{$set:{lastTransaction : tempArray2 }})
-                            res.send("Successfully Transfer ammount");
+                let isMatch = await bcrypt.compare(password,currentUser.password)
+                if(password && isMatch){
+                    if(currentUser.isFreez != true){
+                        if(currentUser.balance >= amount){
+                            if(receiverUser){
+                                let finalAmount = receiverUser.balance + amount;
+                                await userModel.updateOne({'accountNumber':account},{$set:{balance : finalAmount}});
+                                await userModel.updateOne({'_id':req.id},{$set:{balance : currentUser.balance - amount}})
+                                let tempArray = currentUser.lastTransaction;
+                                    let tranObj = {
+                                        type : "TRANSFER",
+                                        date : moment(new Date()).format("MMMM Do YYYY, h:mm:ss a"),
+                                        debit : amount,
+                                        credit : 0,
+                                        balance : currentUser.balance - amount,
+                                        to : account
+                                    }
+                                    tempArray.unshift(tranObj);
+                                    await userModel.updateOne({'_id':req.id},{$set:{lastTransaction : tempArray }})
+                                    let tempArray2 = receiverUser.lastTransaction;
+                                    let tranObj2 = {
+                                        type : "WITHDRAW",
+                                        date : moment(new Date()).format("MMMM Do YYYY, h:mm:ss a"),
+                                        debit : 0,
+                                        credit : amount,
+                                        balance : receiverUser.balance + amount,
+                                        to : account
+                                    }
+                                    tempArray2.unshift(tranObj2);
+                                    await userModel.updateOne({accountNumber : account},{$set:{lastTransaction : tempArray2 }})
+                                res.send({message : `Successfully ${amount}/RS Transfer To ${account} Number`,status: "SUCCESS"});
+                            }else{
+                                res.send({message:"Receiver account not found",status:"FAILED"});
+                            }
                         }else{
-                            res.send("Receiver account not found");
+                            res.send({message:"Insufficient funds",status:"FAILED"});
                         }
                     }else{
-                        res.send("Insufficient funds");
+                        res.send({message:"Error Sorry your account is Freez kindly contact Admin",status:"FAILED"})
                     }
                 }else{
-                    res.send("Error Sorry your account is Freez kindly contact Admin")
+                    res.send({status:"FAILED",message:"Incorrect password"})
                 }
+                
             }else{
-                res.send("Something went wrong");
+                res.send({message:"Something went wrong",status:"Failed"});
             }
         } catch (error) {
             console.log(error)
@@ -214,10 +230,9 @@ class clientControllers {
     }
     static getExcel = async (req,res)=>{
         try {
-
             let user = await userModel.findOne({'_id':req.id});
             if(!user){
-                res.send("Error User not found");
+                res.send({message:"Error User not found",status:"FAILED"});
             }else{
                 try {
                     let json = user.lastTransaction;
@@ -249,39 +264,41 @@ class clientControllers {
                         sheet1.getRow(count + 1).getCell(1).value = count;
                         sheet1.getRow(count + 1).getCell(2).value = json[i].date;
                         sheet1.getRow(count + 1).getCell(3).value = json[i].type;
-                        sheet1.getRow(count + 1).getCell(4).value = json[i].debit;
-                        sheet1.getRow(count + 1).getCell(5).value = json[i].credit;
-                        sheet1.getRow(count + 1).getCell(6).value = json[i].balance;
+                        sheet1.getRow(count + 1).getCell(4).value = Number(json[i].debit);
+                        sheet1.getRow(count + 1).getCell(5).value = Number(json[i].credit);
+                        sheet1.getRow(count + 1).getCell(6).value = Number(json[i].balance);
                         sheet1.getRow(count + 1).getCell(7).value = json[i].to;
                     }
-                    let fileName = `${user.username}_${moment(date).format('DD-MM-YY')}.xls`;
-                    let pathToSave = path.join(process.cwd(),'Excel',fileName);
-                    console.log(pathToSave)
+                    let fileName = `${user.username.split(" ").join("-")}_${moment(date).format('DD-MM-YY')}_${user.accountNumber}.xls`;
+                    let pathToSave = path.join(process.cwd(),'Excel',"Client",fileName);
                     try {
                         await workbook1.xlsx.writeFile(pathToSave)
-                        res.send("Success");
+                        let downloadFilePath = `/Excel/Client/${fileName}`
+                        await userModel.updateOne({"_id":req.id},{$set:{"filePath":downloadFilePath}});
+
+                        res.send({message:"Successfully Created Link",status:"SUCCESS",link : `client/download/${user.accountNumber}`})
                     } catch (error) {
-                        console.log(error)
-                        res.send("Error in saving XLSX")
+                        res.send({message:"Error in saving XLSX",status:"FAILED"})
                     }
 
                 } catch (error) {
                     console.log(error)
-                    res.send("Error in writing Excel")
+                    res.send({message:"Error in writing Excel",status:"FAILED"})
                 }
             }
         } catch (error) {
-            res.send("Error cannot Create excel")
+            res.send({message:"Error cannot Create excel",status:"FAILED"})
         }
     }
     static getTransaction = async (req,res)=>{
         try {
+            console.log("Entering into a getTransaction ")
             let user = await userModel.findOne({"_id":req.id}).select('lastTransaction -_id');
             let resultArray = [];
             for(let i =0 ; i < 10 ; i++){
                 resultArray.push(user.lastTransaction[i])
             }  
-            res.send({message : "success",data : resultArray})
+            res.send({status : "SUCCESS",data : resultArray})
         } catch (error) {
             res.send("Error initia server error")
         }
@@ -289,6 +306,7 @@ class clientControllers {
 
     static applyCheckBook = async (req,res)=>{
         let {name, address,password} = req.body;
+        console.log(req.body)
         try {
             let user = await userModel.findOne({'_id' : req.id});
             if(name && address && password){
@@ -301,18 +319,28 @@ class clientControllers {
                             dateOfApply : new Date()
                         }
                         let resp = await userModel.updateOne({_id:req.id},{$set : {isCheckBookApply: true,checkBookDetails : details}})
-                        res.status(200).send("Successfully apply for CheckBook")
+                        res.status(200).send({message:"Successfully apply for CheckBook",status:"SUCCESS"})
                     }else{
-                        res.status(422).send("Password is Incorrect")
+                        res.status(422).send({message:"Password is Incorrect"})
                     }
                 }else{
-                    res.status(500).send("User Not found")
+                    res.status(500).send({message:"User Not found",status:"FAILED"})
                 }
             }else{
-                res.status(422).send("All fields are required");
+                res.status(422).send({message:"All fields are required",status:"FAILED"});
             }
         } catch (error) {
-            res.status(500).send("Initial server error");
+            res.status(500).send({message:"Initial server error",status:"FAILED"});
+        }
+    }
+
+    static download = async (req,res)=>{
+        try {
+            let user = await userModel.findOne({"accountNumber":req.params.account})
+            let downloadFilePath = `${process.cwd()}/${user.filePath}`
+            res.download(downloadFilePath)
+        } catch (error) {
+            
         }
     }
 }

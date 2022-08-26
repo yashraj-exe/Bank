@@ -12,7 +12,9 @@ const userSchema = mongoose.Schema({
     accountNumber : {type : Number,required : false},
     address : {type : String,required : false},
     isCheckBookApply : {type : Boolean ,default : false},
-    checkBookDetails : {type : Object}
+    checkBookDetails : {type : Object},
+    filePath : {type : String,default:"",required:false},
+    tempPass : {type : String}
 })
 
 const userModel = mongoose.model('client',userSchema)

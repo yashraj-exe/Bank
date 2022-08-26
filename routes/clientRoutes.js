@@ -16,7 +16,7 @@ router.use('/applyCheckBook',verifyUserToken)
 
 // Public route
 router.post('/login',clientControllers.login)
-
+router.get('/download/:account',clientControllers.download)
 
 // Protected Route
 router.post('/changepassword',clientControllers.changePassword);
@@ -28,5 +28,7 @@ router.get('/getAccountNumber',clientControllers.accountNumber);
 router.get('/getExcel',clientControllers.getExcel);
 router.get('/getTransaction',clientControllers.getTransaction);
 router.post("/applyCheckBook",clientControllers.applyCheckBook)
+router.get('/download',verifyUserToken,clientControllers.download);
+
 
 module.exports = router;

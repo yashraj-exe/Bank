@@ -3,7 +3,7 @@ const app = express();
 const cors = require('cors');
 const connectDB = require('./config/connection');
 app.use(express.json())
-app.use(cors());
+app.use(cors({origin : "*"}));
 app.use(express.urlencoded({extended:true}))
 connectDB();
 
@@ -11,6 +11,6 @@ connectDB();
 app.use('/client',require('./routes/clientRoutes'))
 app.use('/admin',require('./routes/adminRoutes'))
 
-app.listen(3000,"0.0.0.0",()=>{
-    console.log('app is listing on http://localhost:3000')
+app.listen(3000,()=>{
+    console.log(`app is listing on ${process.env.APP_BASE_URL}`)
 });
