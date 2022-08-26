@@ -13,6 +13,7 @@ const adminModel = require('../models/adminModel')
 class adminControllers{
     static adminLogin = async (req,res)=>{
         let {email,password} = req.body;
+        console.log(req.body)
         let user = await adminModel.findOne({email});
         console.log(user)
         if(email && password){
@@ -60,8 +61,7 @@ class adminControllers{
                             accountNumber : randomize('0',10),
                             address,
                             phone,
-                            tempPass : password,
-                            join : moment(new Date).format('MMMM Do YYYY, h:mm:ss a')
+                            tempPass : password
                         })
                         const saveResponse = await newUser.save();
                         mail({
