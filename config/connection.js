@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const dotenv = require('dotenv').config()
-
 const OPTIONS = {
     dbName: "WIPRO_BANK"
 }
