@@ -89,9 +89,8 @@ class adminControllers{
             let accountNumber = req.params.accountNumber;
             const user = await userModel.findOne({accountNumber : accountNumber});
             if(user){
-                let x = await userModel.deleteOne({accountNumber : accountNumber });
-                console.log(x)
-                res.send("Delete success")
+                await userModel.deleteOne({accountNumber : accountNumber });
+                res.status(200).send({message:"Delete success",status:"SUCCESS"})
             }else{
                 res.send({message : "Account number is not valid",status : '404'});
             }
@@ -101,32 +100,43 @@ class adminControllers{
         
     }
     static freezAccount = async(req,res)=>{
-        let {value,accountNumber} = req.body;
+        let {accountNumber} = req.body;
+        console.log("freezAccount calling ",req.body)
         try {
             let user = await userModel.findOne({accountNumber : accountNumber});
             if(user){
-                await userModel.updateOne({accountNumber : accountNumber},{$set : {isFreez : value}});
-                res.send("Account Freeze successfully")
+                if(user.isFreez === true){
+                    res.send({message : "Account Allready Freeze",status : 'FAILED'}); 
+                }else{
+                    await userModel.updateOne({accountNumber : accountNumber},{$set : {isFreez : true}});
+                    res.send({message : "Account Freeze successfully",status : 'SUCCESS'}); 
+                    
+                }
             }else{
-                res.send({message : "Account number is not valid",status : '404'});
+                res.send({message : "Account number is not valid",status : 'FAILED'});
             }
         } catch (error) {
-            res.send("Error in Freezeing account, something went wrong")
+            res.send({message:"Error in Freezeing account, something went wrong",status:"FAILED"})
         }
         
     }
     static unfreezAccount = async(req,res)=>{
-       let {value,accountNumber} = req.body;
+        let {accountNumber} = req.body;
+       console.log("Unfreez calls")
         try {
             let user = await userModel.findOne({accountNumber : accountNumber});
             if(user){
-                await userModel.updateOne({accountNumber : accountNumber},{$set : {isFreez : value}});
-                res.send("Account UnFreeze successfully")
+                if(user.isFreez === false){
+                    res.send({message : "Account Allready unFreeze",status : 'FAILED'});
+                }else{
+                    await userModel.updateOne({accountNumber : accountNumber},{$set : {isFreez : false}});
+                    res.send({message : "Account unFreeze successfully",status : 'SUCCESS'}); 
+                }
             }else{
-                res.send({message : "Account number is not valid",status : '404'});
+                res.send({message : "Account number is not valid",status : 'FAILED'});
             }
         } catch (error) {
-            res.send("Error in UnFreezeing account, something went wrong")
+            res.send({message:"Error in UnFreezeing account, something went wrong",status:"FAILED"})
         }
         
     }
@@ -136,8 +146,7 @@ class adminControllers{
                 let allUser = await userModel.find().select('-password -lastTransaction -_id -__v -filePath -tempPass -checkBookDetails');
                 res.send({message:"Succssfully Fetch data",status:"SUCCESS",data : allUser})
             } catch (error) {
-                console.log(error)
-                res.status(500).send("Error in fetching clients details, something went wrong")
+                res.status(500).send({message:"Error in fetching clients details, something went wrong",status:"SUCCESS"})
             }
         }else{
             res.send({message:"Our server is on Maintening period plz try again after some time",status:"FAILED"})
@@ -312,6 +321,19 @@ class adminControllers{
             }
         } catch (error) {
             res.send({message:"Something went wrong",status : "FAILED"})
+        }
+    }
+
+    static crossCheck = async(req,res)=>{
+        try {
+            let user = await userModel.findOne({"accountNumber":req.params.accountNumber},{"username" :1,"phone":1,"email":1,"_id":0});
+            if(user){
+                res.send({status:"SUCCESS",data:user})
+            }else{
+                res.status(400).send({message:"Not a valid account Number",status:"FAILED"})
+            }
+        } catch (error) {
+            res.send({message:"Something went wrong!",status:"FAILED"})
         }
     }
 }

@@ -10,6 +10,7 @@ router.post('/client/unfreezAccount',adminVerify)
 router.get('/client/getAllClients',adminVerify)
 router.get('/client/getClientExcel',adminVerify);
 router.post('/client/getSpecificClientExcel',adminVerify);
+router.get('/client/crossCheck/:accountNumber',adminVerify); 
 
 // Admin Public Routes
 
@@ -28,6 +29,7 @@ router.post('/client/unfreezAccount',adminControllers.unfreezAccount);
 router.get('/client/getAllClients',adminControllers.getAllClients);
 router.get('/client/getClientExcel',adminControllers.getClientExcel); 
 router.post('/client/getSpecificClientExcel',adminControllers.getSpecificClientTransactionExcel); 
+router.get('/client/crossCheck/:accountNumber',adminControllers.crossCheck); 
  
 
 
