@@ -282,7 +282,6 @@ class adminControllers{
             res.send("Error cannot Create excel")
         }
     }
-
     static downloadSpecific = async (req,res)=>{
         try {
             let user = await adminModel.findOne({"_id" : req.params.id});

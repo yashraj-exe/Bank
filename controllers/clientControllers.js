@@ -303,7 +303,6 @@ class clientControllers {
             res.send("Error initia server error")
         }
     }
-
     static applyCheckBook = async (req,res)=>{
         let {name, address,password} = req.body;
         console.log(req.body)
@@ -333,7 +332,6 @@ class clientControllers {
             res.status(500).send({message:"Initial server error",status:"FAILED"});
         }
     }
-
     static download = async (req,res)=>{
         try {
             let user = await userModel.findOne({"accountNumber":req.params.account})
