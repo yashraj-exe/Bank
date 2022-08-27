@@ -45,25 +45,30 @@ class clientControllers {
     }
     static changePassword = async (req, res) => {
         const { current_password, confirm_password, new_password} = req.body;
-        if (current_password && confirm_password && new_password) {
-            if (current_password !== confirm_password) {
-                res.send({ status: "FAILED", message: "password dosen't Match" })
-            } else {
-                const user = await userModel.findOne({ _id: req.id });
-                const isMatch = await bcrypt.compare(current_password, user.password);
-                const salt = await  bcrypt.genSalt(10);
-                const newHashPassword = await bcrypt.hash(new_password,salt);
-                if (isMatch) {
-                    let response = await userModel.findByIdAndUpdate(req.id,{$set:{password:newHashPassword}});
-                    console.log(response)
-                    res.send({ status: "SUCCESS", message: "Successfully change password",newPassword : new_password})
+        try{
+            console.log(req.body)
+            if (current_password && confirm_password && new_password) {
+                if (current_password !== confirm_password) {
+                    res.send({ status: "FAILED", message: "password dosen't Match" });
                 } else {
-                    res.send({ status: "FAILED", message: "password password is incorrect" })
+                    const user = await userModel.findOne({ _id: req.id });
+                    const isMatch = await bcrypt.compare(current_password, user.password);
+                    const salt = await  bcrypt.genSalt(10);
+                    const newHashPassword = await bcrypt.hash(new_password,salt);
+                    if (isMatch) {
+                        let response = await userModel.findByIdAndUpdate(req.id,{$set:{password:newHashPassword}});
+                        console.log(response)
+                        res.send({ status: "SUCCESS", message: "Successfully change password",newPassword : new_password});
+                    } else {
+                        res.send({ status: "FAILED", message: "Password is incorrect" });
+                    }
                 }
-            } 
-        } else {
-            res.send({ status: "FAILED", message: "All fields are required" })
-        }
+            } else {
+                res.send({ status: "FAILED", message: "All fields are required" });
+            }
+        }catch(error){
+            res.send({message:"Something went wrong",status:"FAILED"});
+        }   
     }
     static checkBalance = async (req,res)=>{
         try {
