@@ -7,7 +7,9 @@ const Excel = require('exceljs')
 const path = require('path');
 const moment = require('moment');
 const mail = require("../services/emailService");
-const adminModel = require('../models/adminModel')
+const adminModel = require('../models/adminModel');
+var ObjectId = require('mongodb').ObjectId;
+
 
 
 class adminControllers{
@@ -158,7 +160,7 @@ class adminControllers{
 
     }
     static getClientExcel = async (req,res)=>{
-        if(req.valid){
+        if(true){
             try {
                 let users = await userModel.find().sort("date");
                 let workbook1 = new Excel.Workbook();
@@ -213,8 +215,8 @@ class adminControllers{
                         await workbook1.xlsx.writeFile(pathToSave);
                         let downloadFilePath = `/Excel/Admin/All_Clients/${fileName}`; 
                         console.log(downloadFilePath)
-                        await adminModel.updateOne({"_id":"63065451ae2b69cb0e3893e9"},{$set:{allClientFilePath : downloadFilePath}});
-                        res.send({message:"Successfully Download Excel",status:"SUCCESS",link:`admin/client/download/63065451ae2b69cb0e3893e9`});
+                        await adminModel.updateOne({"_id":"630870c6174694c32c86aa57"},{$set:{allClientFilePath : downloadFilePath}});
+                        res.send({message:"Successfully Download Excel",status:"SUCCESS",link:`admin/client/download/630870c6174694c32c86aa57   `});
                     } catch (error) {
                         res.send("Error in saving excel file")
                     }
@@ -278,8 +280,8 @@ class adminControllers{
                     try {
                         await workbook1.xlsx.writeFile(pathToSave)
                         let downloadFilePath = `${process.cwd()}/Excel/Admin/Specific_Client_Transaction/${fileName}`
-                        await adminModel.updateOne({'_id':"63065451ae2b69cb0e3893e9"},{$set:{specificClientFilePath : `/Excel/Admin/Specific_Client_Transaction/${fileName}`}})
-                        res.send({message:"Successfully Generate Excel",status:"SUCCESS",link:`admin/client/specificClient/63065451ae2b69cb0e3893e9`})
+                        await adminModel.updateOne({'_id':"630870c6174694c32c86aa57"},{$set:{specificClientFilePath : `/Excel/Admin/Specific_Client_Transaction/${fileName}`}})
+                        res.send({message:"Successfully Generate Excel",status:"SUCCESS",link:`admin/client/specificClient/630870c6174694c32c86aa57`})
                     } catch (error) {
                         console.log(error)
                         res.send("Error in saving XLSX")
@@ -296,6 +298,7 @@ class adminControllers{
     }
     static downloadSpecific = async (req,res)=>{
         try {
+            
             let user = await adminModel.findOne({"_id" : req.params.id});
             console.log("USER DOWNLOAD :- ",user)
             if(user){
@@ -312,10 +315,11 @@ class adminControllers{
     }
     static download = async (req,res)=>{
         try {
-            let user = await adminModel.findOne({"_id" : req.params.id});
+            let user = await adminModel.find();
+            console.log(user)
             if(user){
                 console.log("USER DOWNLOAD :- ",user)
-                let downloadPath = `${process.cwd()}${user.allClientFilePath}`
+                let downloadPath = `${process.cwd()}${user[0].allClientFilePath}`
                 res.download(downloadPath,(err)=>{
                     if(err) throw res.send({message:"Unable to download file",status:"FAILED"})
                 })
@@ -323,6 +327,7 @@ class adminControllers{
                 res.send({message:"Admin records not found",status:"FAILED"})
             }
         } catch (error) {
+            console.log(error)
             res.send({message:"Something went wrong",status : "FAILED"})
         }
     }
