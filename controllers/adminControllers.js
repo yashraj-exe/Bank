@@ -299,7 +299,7 @@ class adminControllers{
             let user = await adminModel.find();
             console.log("USER DOWNLOAD :- ",user)
             if(user){
-                let downloadPath = `${process.cwd()}${user[0].specificClientFilePath}`
+                let downloadPath = `.${user[0].specificClientFilePath}`
                 console.log(downloadPath)
                 res.download(downloadPath,(err)=>{
                     console.log("Im erroe %%%%%%%%%%%%%%%%%%%%%%%%",err)
