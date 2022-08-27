@@ -214,8 +214,8 @@ class adminControllers{
                         await workbook1.xlsx.writeFile(pathToSave);
                         let downloadFilePath = `/Excel/Admin/All_Clients/${fileName}`; 
                         console.log(downloadFilePath)
-                        await adminModel.updateOne({"_id":"63065451ae2b69cb0e3893e9"},{$set:{allClientFilePath : downloadFilePath}});
-                        res.send({message:"Successfully Download Excel",status:"SUCCESS",link:`admin/client/download/63065451ae2b69cb0e3893e9`});
+                        await adminModel.updateOne({"_id":"630870c6174694c32c86aa57"},{$set:{allClientFilePath : downloadFilePath}});
+                        res.send({message:"Successfully Download Excel",status:"SUCCESS",link:`admin/client/download/630870c6174694c32c86aa57`});
                     } catch (error) {
                         res.send("Error in saving excel file")
                     }
