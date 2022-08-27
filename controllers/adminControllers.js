@@ -302,6 +302,7 @@ class adminControllers{
                 let downloadPath = `${process.cwd()}${user[0].specificClientFilePath}`
                 console.log(downloadPath)
                 res.download(downloadPath,(err)=>{
+                    console.log("Im erroe %%%%%%%%%%%%%%%%%%%%%%%%",err)
                     if(err) throw res.send({message:"Unable to download file",status:"FAILED"})
                 })
             }else{
