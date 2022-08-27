@@ -277,8 +277,8 @@ class adminControllers{
                     try {
                         await workbook1.xlsx.writeFile(pathToSave)
                         let downloadFilePath = `${process.cwd()}/Excel/Admin/Specific_Client_Transaction/${fileName}`
-                        await adminModel.updateOne({'_id':"63065451ae2b69cb0e3893e9"},{$set:{specificClientFilePath : `/Excel/Admin/Specific_Client_Transaction/${fileName}`}})
-                        res.send({message:"Successfully Generate Excel",status:"SUCCESS",link:`admin/client/specificClient/63065451ae2b69cb0e3893e9`})
+                        await adminModel.updateOne({'_id':"630870c6174694c32c86aa57"},{$set:{specificClientFilePath : `/Excel/Admin/Specific_Client_Transaction/${fileName}`}})
+                        res.send({message:"Successfully Generate Excel",status:"SUCCESS",link:`admin/client/specificClient/630870c6174694c32c86aa57`})
                     } catch (error) {
                         console.log(error)
                         res.send("Error in saving XLSX")
@@ -295,11 +295,12 @@ class adminControllers{
     }
     static downloadSpecific = async (req,res)=>{
         try {
-            
-            let user = await adminModel.findOne({"_id" : req.params.id});
+            console.log("In specific")
+            let user = await adminModel.find();
             console.log("USER DOWNLOAD :- ",user)
             if(user){
-                let downloadPath = `${process.cwd()}${user.specificClientFilePath}`
+                let downloadPath = `${process.cwd()}${user[0].specificClientFilePath}`
+                console.log(downloadPath)
                 res.download(downloadPath,(err)=>{
                     if(err) throw res.send({message:"Unable to download file",status:"FAILED"})
                 })
@@ -307,6 +308,7 @@ class adminControllers{
                 res.send({message:"Admin records not found",status:"FAILED"})
             }
         } catch (error) {
+            console.log(error)
             res.send({message:"Something went wrong",status : "FAILED"})
         }
     }
