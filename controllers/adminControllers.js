@@ -24,7 +24,10 @@ class adminControllers{
                     let token = jwt.sign({admin:encryptString},process.env.JWT_SECRET_KEY,{expiresIn : "1d"});
                     let dataa = {
                         data  : {"token": token },
-                        status: "SUCCESS", message: "Login Success"
+                        status: "SUCCESS",
+                        message: "Login Success",
+                        role : "ADMIN",
+                        name : "Aastha"
                     }
                     res.send(dataa)
                 }else{

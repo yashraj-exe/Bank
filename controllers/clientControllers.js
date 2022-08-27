@@ -2,12 +2,10 @@ const dotenv = require('dotenv').config()
 const userModel = require('../models/userModel')
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
-const randomize = require('randomatic');
 const moment = require('moment')
 const Excel = require('exceljs')
 const path = require('path')
 let date = new Date();
-const verify = require('../middlewares/auth-middleware')
 
 class clientControllers {
     static login = async (req, res) => {
@@ -22,23 +20,26 @@ class clientControllers {
                     if ((email === data.email) && isMatch) {
                         //JWT/
                         const token = jwt.sign({ userID: data._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1d' })
-                        let dataa = {
+                        let response = {
                             data  : {"token": token },
-                            status: "Success", message: "Login Success"
+                            status: "SUCCESS",
+                            message: "Login Success",
+                            type : "CLIENT",
+                            name : data.username
                         }
-                        res.send(dataa)
+                        res.send(response)
                     } else {
-                        res.send({ status: "Failed", message: "email and password are invalid" })
+                        res.send({ status: "FAILED", message: "email and password are invalid" })
                     }
                 } else {
-                    res.send('not a register user')
+                    res.send({message:"Invalid login credentials",status:"FAILED"})
                 }
             } catch (error) {
                 console.log(error)
-                res.send({ status: "Failed", message: "unable to login user", err: error.message })
+                res.send({ status: "FAILED", message: "unable to login user", err: error.message })
             }
         }else{
-            res.send("Error all fields are required")
+            res.send({ status: "FAILED", message: "Error all fields are required"})
         }
         
     }
@@ -46,23 +47,22 @@ class clientControllers {
         const { current_password, confirm_password, new_password} = req.body;
         if (current_password && confirm_password && new_password) {
             if (current_password !== confirm_password) {
-                res.send({ status: "Failed", message: "password dosen't Match" })
+                res.send({ status: "FAILED", message: "password dosen't Match" })
             } else {
                 const user = await userModel.findOne({ _id: req.id });
                 const isMatch = await bcrypt.compare(current_password, user.password);
                 const salt = await  bcrypt.genSalt(10);
-                // let new_password = randomize('0A',5);
                 const newHashPassword = await bcrypt.hash(new_password,salt);
                 if (isMatch) {
                     let response = await userModel.findByIdAndUpdate(req.id,{$set:{password:newHashPassword}});
                     console.log(response)
                     res.send({ status: "SUCCESS", message: "Successfully change password",newPassword : new_password})
                 } else {
-                    res.send({ status: "Failed", message: "password password is incorrect" })
+                    res.send({ status: "FAILED", message: "password password is incorrect" })
                 }
             } 
         } else {
-            res.send({ status: "Failed", message: "All fields are required" })
+            res.send({ status: "FAILED", message: "All fields are required" })
         }
     }
     static checkBalance = async (req,res)=>{
@@ -150,11 +150,10 @@ class clientControllers {
                     res.send({message:"Error Sorry your account is Freez kindly contact Admin",status:"FAILED"})
                 }
             }else{
-                res.send("Error Something went wrong")
+                res.send({message:"Error Something went wrong",status:"FAILED"})
             }
         } catch (error) {
-            console.log(error)
-            res.send("Error cannot not Deposite Amount");
+            res.send({message:"Error cannot not Deposite Amount",status:"FAILED"})
         }
     }
     static transferAmount = async (req,res)=>{
@@ -209,11 +208,10 @@ class clientControllers {
                 }
                 
             }else{
-                res.send({message:"Something went wrong",status:"Failed"});
+                res.send({message:"Something went wrong",status:"FAILED"});
             }
         } catch (error) {
-            console.log(error)
-            res.send("Error cannot transfer amount");
+            res.send({message:"Error cannot transfer amount",status:"FAILED"});
         }
     }
     static accountNumber = async (req,res)=>{
@@ -222,10 +220,10 @@ class clientControllers {
             if(user){
                 res.send({account : user.accountNumber})
             }else{
-                res.send("Something went wrong")
+                res.send({message:"Something went wrong",status:"FAILED"});
             }
         } catch (error) {
-            res.send("Error cannot fetch Account Number");
+            res.send({message:"Error cannot fetch Account Number",status:"FAILED"});
         }
     }
     static getExcel = async (req,res)=>{
@@ -292,20 +290,22 @@ class clientControllers {
     }
     static getTransaction = async (req,res)=>{
         try {
-            console.log("Entering into a getTransaction ")
             let user = await userModel.findOne({"_id":req.id}).select('lastTransaction -_id');
             let resultArray = [];
-            for(let i =0 ; i < 10 ; i++){
-                resultArray.push(user.lastTransaction[i])
-            }  
+            if(user.length > 10){
+                for(let i = 0 ; i < 10 ; i++){
+                    resultArray.push(user.lastTransaction[i])
+                }  
+            }else{
+                resultArray = user.lastTransaction;
+            }
             res.send({status : "SUCCESS",data : resultArray})
         } catch (error) {
-            res.send("Error initia server error")
+            res.send({message:"Error initia server error",status:"FAILED"})
         }
     }
     static applyCheckBook = async (req,res)=>{
         let {name, address,password} = req.body;
-        console.log(req.body)
         try {
             let user = await userModel.findOne({'_id' : req.id});
             if(name && address && password){
@@ -320,7 +320,7 @@ class clientControllers {
                         let resp = await userModel.updateOne({_id:req.id},{$set : {isCheckBookApply: true,checkBookDetails : details}})
                         res.status(200).send({message:"Successfully apply for CheckBook",status:"SUCCESS"})
                     }else{
-                        res.status(422).send({message:"Password is Incorrect"})
+                        res.status(422).send({message:"Password is Incorrect",status:"FAILED"})
                     }
                 }else{
                     res.status(500).send({message:"User Not found",status:"FAILED"})
@@ -338,7 +338,7 @@ class clientControllers {
             let downloadFilePath = `${process.cwd()}/${user.filePath}`
             res.download(downloadFilePath)
         } catch (error) {
-            
+            res.status(500).send({message:"Initial server error",status:"FAILED"});
         }
     }
 }
