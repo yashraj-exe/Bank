@@ -48,7 +48,7 @@ class clientControllers {
         try{
             console.log(req.body)
             if (current_password && confirm_password && new_password) {
-                if (current_password !== confirm_password) {
+                if (new_password !== confirm_password) {
                     res.send({ status: "FAILED", message: "password dosen't Match" });
                 } else {
                     const user = await userModel.findOne({ _id: req.id });
@@ -89,7 +89,7 @@ class clientControllers {
                     if(depositeAmount >=1 ){
                         const isMatch = await bcrypt.compare(password, user.password);
                         if(isMatch){
-                            let finalBalance = user.balance + depositeAmount;
+                            let finalBalance = user.balance + Number(depositeAmount);
                             await userModel.updateOne({'_id':req.id},{$set : {balance : finalBalance}})
                             let tempArray = user.lastTransaction;
                             let tranObj = {
@@ -130,7 +130,7 @@ class clientControllers {
                     if(isMatch){
                         if(withdrawAmount <= user.balance){
                             if(withdrawAmount >= 0.1){
-                                let finalAmount = user.balance - withdrawAmount;
+                                let finalAmount = user.balance - Number(withdrawAmount);
                                 await userModel.updateOne({'_id':req.id},{$set:{balance : finalAmount.toFixed(2)}});
                                 let tempArray = user.lastTransaction;
                                 let tranObj = {
@@ -173,16 +173,16 @@ class clientControllers {
                     if(currentUser.isFreez != true){
                         if(currentUser.balance >= amount){
                             if(receiverUser){
-                                let finalAmount = receiverUser.balance + amount;
+                                let finalAmount = receiverUser.balance + Number(amount);
                                 await userModel.updateOne({'accountNumber':account},{$set:{balance : finalAmount}});
-                                await userModel.updateOne({'_id':req.id},{$set:{balance : currentUser.balance - amount}})
+                                await userModel.updateOne({'_id':req.id},{$set:{balance : currentUser.balance - Number(amount)}})
                                 let tempArray = currentUser.lastTransaction;
                                     let tranObj = {
                                         type : "TRANSFER",
                                         date : moment(new Date()).format("MMMM Do YYYY, h:mm:ss a"),
                                         debit : amount,
                                         credit : 0,
-                                        balance : currentUser.balance - amount,
+                                        balance : currentUser.balance - Number(amount),
                                         to : account
                                     }
                                     tempArray.unshift(tranObj);
@@ -193,7 +193,7 @@ class clientControllers {
                                         date : moment(new Date()).format("MMMM Do YYYY, h:mm:ss a"),
                                         debit : 0,
                                         credit : amount,
-                                        balance : receiverUser.balance + amount,
+                                        balance : receiverUser.balance + Number(amount),
                                         to : account
                                     }
                                     tempArray2.unshift(tranObj2);
