@@ -76,16 +76,16 @@ class adminControllers{
                             txt : "",
                             html : `<h3>Hello,${user} this is your login credentials email : ${email} password : ${password}`
                         })
-                        res.send({ status: "Success", message: "Client Register Successfully",password})
+                        res.send({ status: "SUCCESS", message: "Client Register Successfully",password})
 
                     } catch (err) {
-                        res.send({ status: "Failed", message: "Unable to register client ", error: err.message })
+                        res.send({ status: "FAILED", message: "Unable to register client ", error: err.message })
                     }
                 } else {
-                    res.send({ status: "Failed", message: "Phone number allready exist" })
+                    res.send({ status: "FAILED", message: "Phone number allready exist" })
                 }
             } else {
-                res.send({ status: "Failed", message: "All fields are required" })
+                res.send({ status: "FAILED", message: "All fields are required" })
             }
         }
     }
