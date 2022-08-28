@@ -7,7 +7,7 @@ router.post('/client/register',adminVerify)
 router.delete('/client/delete/:accountNumber',adminVerify)
 router.post('/client/freezAccount',adminVerify)
 router.post('/client/unfreezAccount',adminVerify)
-// router.get('/client/getAllClients',adminVerify)
+router.get('/client/getAllClients',adminVerify)
 // router.get('/client/getClientExcel',adminVerify);
 // router.post('/client/getSpecificClientExcel',adminVerify);
 router.get('/client/crossCheck/:accountNumber',adminVerify); 
