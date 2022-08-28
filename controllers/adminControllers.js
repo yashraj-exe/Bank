@@ -276,8 +276,8 @@ class adminControllers{
                     let pathToSave = path.join(process.cwd(),'Excel','Admin','Specific_Client_Transaction',fileName);
                     try {
                         await workbook1.xlsx.writeFile(pathToSave)
-                        let downloadFilePath = `${process.cwd()}/Excel/Admin/Specific_Client_Transaction/${fileName}`
-                        await adminModel.updateOne({'_id':"630870c6174694c32c86aa57"},{$set:{specificClientFilePath : `/Excel/Admin/Specific_Client_Transaction/${fileName}`}})
+                        let downloadFilePath = `/Excel/Admin/Specific_Client_Transaction/${fileName}`
+                        await adminModel.updateOne({'_id':"630870c6174694c32c86aa57"},{$set:{specificClientFilePath : downloadFilePath}})
                         res.send({message:"Successfully Generate Excel",status:"SUCCESS",link:`admin/client/specificClient/630870c6174694c32c86aa57`})
                     } catch (error) {
                         console.log(error)
@@ -299,10 +299,10 @@ class adminControllers{
             let user = await adminModel.find();
             console.log("USER DOWNLOAD :- ",user)
             if(user){
-                let downloadPath = `.${user[0].specificClientFilePath}`
-                console.log(downloadPath)
+                let downloadPath = `${process.cwd()}${user[0].specificClientFilePath}`
+                console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$",downloadPath)
                 res.download(downloadPath,(err)=>{
-                    console.log("Im erroe %%%%%%%%%%%%%%%%%%%%%%%%",err)
+                    console.log("Im erroe %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",err)
                     if(err) throw res.send({message:"Unable to download file",status:"FAILED"})
                 })
             }else{
