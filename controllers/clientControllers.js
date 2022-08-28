@@ -25,7 +25,8 @@ class clientControllers {
                             status: "SUCCESS",
                             message: "Login Success",
                             type : "CLIENT",
-                            name : data.username
+                            name : data.username,
+                            account : data.accountNumber
                         }
                         res.send(response)
                     } else {
